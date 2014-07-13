@@ -1,54 +1,77 @@
 var async = require('async');
 
-module.exports = function(grunt) {
-  grunt.registerTask("mongoimport", "Grunt task for importing data into mongodb", function() {
+module.exports = function (grunt) {
+    grunt.registerMultiTask("mongoimport", "Grunt task for importing data into mongodb", function () {
 
-  var done = this.async();
-  var options = this.options();
-  
-  async.eachSeries(options.collections, function(collection, callback){
-    var args = [];
+        var done = this.async(),
+            options = this.options(),
+            files = this.filesSrc;
 
-    if (options.db) args.push('--db=' + options.db);
-    if (options.host) args.push('--host=' + options.host);
-    if (options.port) args.push('--port=' + options.port);
-    if (options.username) args.push('--username=' + options.username);
-    if (options.password) args.push('--password=' + options.password);
-    if (options.stopOnError) args.push('--stopOnError');
+        async.eachSeries(files, function (filepath, callback) {
+                //customise to read and remove newlines from multiple json files
+                var args = [],
+                    filename = /[^\\/]*(?=[.][\w]+$)/.exec(filepath),
+                    filecontents = grunt.file.read(filepath).replace(/(\r\n|\n|\r)/gm, ""),
+                    minFilePath = /[^*]*(?=[.][\w]+$)/.exec(filepath) + ".min.json";
 
-    if (collection.name) args.push('--collection=' + collection.name);
-    if (collection.type) args.push('--type=' + collection.type);
-    if (collection.file) args.push('--file=' + collection.file);
-    if (collection.fields) args.push('--fields=' + collection.fields);
-    if (collection.upsertFields) args.push('--upsertFields=' + collection.upsertFields);
-    if (collection.jsonArray) args.push('--jsonArray');
-    if (collection.upsert) args.push('--upsert');
-    if (collection.drop) args.push('--drop');
+                grunt.log.verbose.writeln(["filepath: " + filepath]);
+                grunt.log.verbose.writeln(["filename: " + filename]);
+                grunt.log.verbose.writeln(["minFilePath: " + minFilePath]);
+                grunt.log.verbose.writeln(["filecontents: " + filecontents]);
 
-    var child = grunt.util.spawn({
-      cmd: 'mongoimport',
-          args: args,
-          opts:
-          { stdio:
-              [ process.stdin
-              , process.stout
-              , process.stderr
-              ]
-          }
-        },
-        function (error, result) {
-          if (error) {
-            grunt.log.error(result.stderr);
-            callback();
-          }
-          grunt.log.writeln(result.stdout);
-          callback();
-        });
-      },
-      function(err){
-        if (err) done(false);
-        done();
-      }
-    );
-  });
+                //delete existing minified files
+                if (grunt.file.exists(minFilePath)) {
+                    grunt.file.delete(minFilePath);
+                }
+                //save minified version
+                grunt.file.write(minFilePath, filecontents);
+
+                args.push('--file=' + minFilePath);
+
+                if (options.db) args.push('--db=' + options.db);
+                if (options.host) args.push('--host=' + options.host);
+                if (options.port) args.push('--port=' + options.port);
+                if (options.username) args.push('--db=' + options.username);
+                if (options.password) args.push('--db=' + options.password);
+                if (options.stopOnError) args.push('--stopOnError');
+
+                if (filename) args.push('--collection=' + filename);
+                if (options.type) args.push('--type=' + options.type);
+                if (options.fields) args.push('--fields=' + options.fields);
+                if (options.upsertFields) args.push('--upsertFields=' + options.upsertFields);
+                if (options.jsonArray) args.push('--jsonArray');
+                if (options.upsert) args.push('--upsert');
+                if (options.drop) args.push('--drop');
+
+                var child = grunt.util.spawn({
+                        cmd: options.mongoPath + '/mongoimport',
+                        args: args,
+                        opts:
+                        {
+                            stdio:
+                                [process.stdin
+                                    , process.stout
+                                    , process.stderr
+                                ]
+                        }
+                    },
+                    function (error, result) {
+                        if (error) {
+                            grunt.log.error(result.stderr);
+                            //delete file
+                            grunt.file.delete(minFilePath);
+                            callback();
+                        }
+                        grunt.log.writeln(result.stdout);
+                        //delete file
+                        grunt.file.delete(minFilePath);
+                        callback();
+                    });
+            },
+            function (err) {
+                if (err) done(false);
+                done();
+            }
+        );
+    });
 };

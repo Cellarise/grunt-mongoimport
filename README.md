@@ -1,3 +1,6 @@
+# grunt-cellarise-mongoimport
+This package has been forked from andrewkeig/grunt-mongoimport, and updates the task to remove newlines from source json files before importing data into mongodb.
+
 # grunt-mongoimport
 
 Import data into mongodb using mongoimport

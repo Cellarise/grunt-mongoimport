@@ -1,18 +1,11 @@
 {
-  "name": "grunt-mongoimport",
-  "description": "Grunt task for importing data into mongodb",
-  "version": "0.1.4",
-  "homepage": "https://github.com/andrewkeig/grunt-mongoimport",
-  "author": {
-    "name": "Andrew Keig",
-    "email": "andrew.keig@gmail.com"
-  },
+  "name": "grunt-cellarise-mongoimport",
+  "description": "This package has been forked from andrewkeig/grunt-mongoimport, and updates the task to remove newlines from source json files before importing data into mongodb.  Grunt task for importing data into mongodb.",
+  "version": "0.1.0",
+  "author": "John Barry",
   "repository": {
     "type": "git",
-    "url": "git://github.com/andrewkeig/grunt-mongoimport.git"
-  },
-  "bugs": {
-    "url": "https://github.com/andrewkeig/grunt-mongoimport/issues"
+    "url": "git://github.com/cellarise/grunt-mongoimport.git"
   },
   "licenses": [
     {
